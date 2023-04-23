@@ -42,6 +42,18 @@ public class login extends JFrame {
 
             }
         });
+        inputUsername.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                inputPassword.requestFocus();
+            }
+        });
+        inputPassword.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                btnLogin.requestFocus();
+            }
+        });
     }
 
     public void render(){
