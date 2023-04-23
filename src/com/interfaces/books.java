@@ -31,6 +31,7 @@ public class books {
     private JButton btnAddCategory;
     private JButton btnAddType;
     private JTextField txtCount;
+    private JButton btnBack;
 
     Connection conn;
     PreparedStatement pst;
@@ -223,6 +224,14 @@ public class books {
             @Override
             public void actionPerformed(ActionEvent e) {
                 txtCount.requestFocus();
+            }
+        });
+        btnBack.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                dashboard dashboard = new dashboard();
+                dashboard.render();
+                SwingUtilities.getWindowAncestor(books).dispose();
             }
         });
     }
