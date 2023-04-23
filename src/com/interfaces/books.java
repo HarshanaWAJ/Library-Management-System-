@@ -4,6 +4,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusAdapter;
 import java.sql.*;
 import javax.swing.table.DefaultTableModel;
 
@@ -145,20 +146,83 @@ public class books {
             @Override
             public void actionPerformed(ActionEvent e) {
                 searchName = txtSearch.getText();
-                ISBN = txtISBN.getText();
-                book_name = txtbook_name.getText();
-                author = txtauthor.getText();
-                type = txtType.getSelectedItem().toString();
-                category = txtCategory.getSelectedItem().toString();
-                String c = txtCount.getText();
-                count = parseInt(c);
 
                 if (searchName.isEmpty()){
                     JOptionPane.showMessageDialog(null, "Please Enter Book Name to Update!");
                 } else {
-                    updateBooks();
+
+                    txtISBN.setEnabled(false);
+                    txtISBN.setFocusable(false);
+                    ISBN = txtSearch.getText();
+                    book_name = txtbook_name.getText();
+                    author = txtauthor.getText();
+                    type = txtType.getSelectedItem().toString();
+                    category = txtCategory.getSelectedItem().toString();
+                    String c = txtCount.getText();
+                    count = parseInt(c);
+
+                    // call updateBooks() method
+                    boolean isSuccess = updateBooks();
+                    if(isSuccess){
+                        tableLoad();
+                        JOptionPane.showMessageDialog(null, "Record Updated!");
+                    }
+                    else{
+                        JOptionPane.showMessageDialog(null, "Failed to update record!");
+                    }
+                }
+            }
+        });
+        btnDelete.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                searchName = txtSearch.getText();
+
+                if (searchName.isEmpty()){
+                    JOptionPane.showMessageDialog(null, "Please Enter ISBN to Delete!");
+                }
+                else {
+                    JOptionPane.showMessageDialog(null, "Book Details Deleted!");
+                    deleteBook();
                     tableLoad();
                 }
+            }
+        });
+        txtISBN.addFocusListener(new FocusAdapter() {
+        });
+        //
+        //Move to the next
+        txtISBN.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                txtbook_name.requestFocus();
+            }
+        });
+        txtbook_name.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                txtauthor.requestFocus();
+            }
+        });
+
+
+        txtauthor.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                txtType.requestFocus();
+            }
+        });
+        txtType.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                txtCategory.requestFocus();
+            }
+        });
+
+        txtCategory.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                txtCount.requestFocus();
             }
         });
     }
@@ -217,9 +281,11 @@ public class books {
             ResultSetMetaData rsmd = rs.getMetaData();
             int numColumns = rsmd.getColumnCount();
             // add column names to model
-            for (int i = 1; i <= numColumns; i++) {
-                model.addColumn(rsmd.getColumnName(i));
+            String[] columnNames = {"ID", "ISBN", "Name of Book", "Author", "Type", "Category No", "No of Copies"};
+            for (String columnName : columnNames) {
+                model.addColumn(columnName);
             }
+
             // add data to model
             while (rs.next()) {
                 Object[] rowData = new Object[numColumns];
@@ -237,15 +303,16 @@ public class books {
     private void reloadComboBoxData() {
         try {
             // Reload values for txtCategory
-            pst = conn.prepareStatement("SELECT * FROM books");
+            pst = conn.prepareStatement("SELECT *  FROM category");
             ResultSet rs = pst.executeQuery();
             txtCategory.removeAllItems();
-            txtCategory.insertItemAt("Select One", 0);
+            txtCategory.addItem("Select One");
             while (rs.next()) {
                 txtCategory.addItem(rs.getString("category"));
             }
             rs.close();
             pst.close();
+
 
             // Reload values for txtType
             pst = conn.prepareStatement("SELECT * FROM type");
@@ -294,8 +361,9 @@ public class books {
         }
     }
 
-    public void updateBooks(){
+    public boolean updateBooks(){
         try {
+            // prepare statement for updating books table
             pst = conn.prepareStatement("UPDATE books SET book_name=?, author=?, type=?, category=?, count=? WHERE ISBN=?");
             pst.setString(1, book_name);
             pst.setString(2, author);
@@ -303,21 +371,40 @@ public class books {
             pst.setString(4, category);
             pst.setInt(5, count);
             pst.setString(6, ISBN);
-            txtISBN.setText(ISBN);
-            pst.executeUpdate();
-            System.out.println();
-            JOptionPane.showMessageDialog(null, "Record Updated!");
-            tableLoad();
-            txtISBN.setText("");
-            txtbook_name.setText("");
-            txtauthor.setText("");
-            txtType.setSelectedItem("");
-            txtCategory.setSelectedItem("");
-            txtCount.setText("");
+
+            // execute the update statement
+            int rowsUpdated = pst.executeUpdate();
+            if(rowsUpdated > 0){
+                return true;
+            }
+            else{
+                return false;
+            }
         } catch (SQLException e){
             e.printStackTrace();
+            return false;
         }
     }
+
+    public boolean deleteBook() {
+        try {
+            pst = conn.prepareStatement("DELETE FROM books WHERE ISBN=?");
+            pst.setString(1, searchName);
+
+            // execute the delete statement
+            int rowsDeleted = pst.executeUpdate();
+            if (rowsDeleted > 0) {
+                return true; // deletion was successful
+            } else {
+                return false; // no rows were affected, deletion failed
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false; // an exception occurred, deletion failed
+        }
+    }
+
+
 
 
 
