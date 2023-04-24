@@ -8,6 +8,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.sql.*;
 
+import static java.lang.Integer.parseInt;
+
 public class member {
     private JPanel memFrame;
     private JTextField txtReg;
@@ -24,7 +26,7 @@ public class member {
     private JButton backButton;
     private JTextField txtEmail;
 
-    private String regNo, name, gen, memType, email_id;
+    private String regNo, name, gen, memType, email_id, Search;
 
         Connection conn;
         PreparedStatement pst;
@@ -114,6 +116,24 @@ public class member {
                 }
             }
         });
+        refreshButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                tableLoad();
+            }
+        });
+        searchButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Search = txtSearch.getText();
+                if (Search.isEmpty()) {
+                    JOptionPane.showMessageDialog(null, "Please Enter Registration Number to Search!");
+                }
+                else {
+                   searchMember();
+                }
+            }
+        });
     }
 
     public void render(){
@@ -182,6 +202,33 @@ public class member {
                 txtReg.requestFocus();
             }
         } catch (SQLException e){
+            e.printStackTrace();
+        }
+    }
+
+    public void searchMember(){
+        try {
+            pst = conn.prepareStatement("SELECT * FROM members WHERE reg_no=?");
+            pst.setString(1, Search);
+            ResultSet rs = pst.executeQuery();
+            DefaultTableModel model = new DefaultTableModel();
+            ResultSetMetaData rsmd = rs.getMetaData();
+            int numColumns = rsmd.getColumnCount();
+            // add column names to model
+            for (int i = 1; i <= numColumns; i++) {
+                model.addColumn(rsmd.getColumnName(i));
+            }
+            // add data to model
+            while (rs.next()) {
+                Object[] rowData = new Object[numColumns];
+                for (int i = 1; i <= numColumns; i++) {
+                    rowData[i-1] = rs.getObject(i);
+                }
+                model.addRow(rowData);
+            }
+            table1.setModel(model);
+
+        } catch (SQLException e) {
             e.printStackTrace();
         }
     }
