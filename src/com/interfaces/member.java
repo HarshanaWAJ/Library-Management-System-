@@ -134,6 +134,48 @@ public class member {
                 }
             }
         });
+
+
+        deleteButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Search = txtSearch.getText();
+
+                if (Search.isEmpty()){
+                    JOptionPane.showMessageDialog(null, "Please Enter Register Number to Delete!");
+                }
+                else {
+                    JOptionPane.showMessageDialog(null, "Member Details Deleted!");
+                    deleteMember();
+                    tableLoad();
+                }
+            }
+        });
+        updateButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Search= txtSearch.getText();
+                if (Search.isEmpty()){
+                    JOptionPane.showMessageDialog(null, "Please Enter Book Name to Update!");
+                } else {
+                    regNo = txtSearch.getText();
+                    name = txtMemName.getText();
+                    gen = gender.getSelectedItem().toString();
+                    memType = type.getSelectedItem().toString();
+                    email_id = txtEmail.getText();
+
+                    // call updateBooks() method
+                    boolean isSuccess = updateMember();
+                    if(isSuccess){
+                        tableLoad();
+                        JOptionPane.showMessageDialog(null, "Record Updated!");
+                    }
+                    else{
+                        JOptionPane.showMessageDialog(null, "Failed to update record!");
+                    }
+                }
+            }
+        });
     }
 
     public void render(){
@@ -230,6 +272,49 @@ public class member {
 
         } catch (SQLException e) {
             e.printStackTrace();
+        }
+    }
+
+    public boolean deleteMember() {
+        try {
+            pst = conn.prepareStatement("DELETE FROM members WHERE reg_no=?");
+            pst.setString(1, Search);
+
+            // execute the delete statement
+            int rowsDeleted = pst.executeUpdate();
+            if (rowsDeleted > 0) {
+                return true; // deletion was successful
+            } else {
+                return false; // no rows were affected, deletion failed
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false; // an exception occurred, deletion failed
+        }
+    }
+
+    public boolean updateMember(){
+        try {
+            // prepare statement for updating books table
+            pst = conn.prepareStatement("UPDATE members SET name=?, gender=?, mem_type=?, email=? WHERE reg_no=?");
+            pst.setString(5, regNo);
+            pst.setString(1, name);
+            pst.setString(2, gen);
+            pst.setString(3, memType);
+            pst.setString(4, email_id);
+
+
+            // execute the update statement
+            int rowsUpdated = pst.executeUpdate();
+            if(rowsUpdated > 0){
+                return true;
+            }
+            else{
+                return false;
+            }
+        } catch (SQLException e){
+            e.printStackTrace();
+            return false;
         }
     }
 
