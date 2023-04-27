@@ -31,6 +31,14 @@ public class dashboard {
                 closeFrame();
             }
         });
+        btnBorrows.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                BorrowManagement borrow = new BorrowManagement();
+                borrow.render();
+                SwingUtilities.getWindowAncestor(dashboard).dispose();
+            }
+        });
     }
 
     public void render(){

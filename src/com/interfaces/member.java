@@ -156,7 +156,7 @@ public class member {
             public void actionPerformed(ActionEvent e) {
                 Search= txtSearch.getText();
                 if (Search.isEmpty()){
-                    JOptionPane.showMessageDialog(null, "Please Enter Book Name to Update!");
+                    JOptionPane.showMessageDialog(null, "Please Enter Register Number to Update!");
                 } else {
                     regNo = txtSearch.getText();
                     name = txtMemName.getText();
@@ -304,7 +304,7 @@ public class member {
             pst.setString(4, email_id);
 
 
-            // execute the update statement
+            // execute the update statement 
             int rowsUpdated = pst.executeUpdate();
             if(rowsUpdated > 0){
                 return true;
