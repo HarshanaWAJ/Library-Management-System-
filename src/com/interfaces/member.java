@@ -221,13 +221,13 @@ public class member {
     public void addMember(){
         //Send Data
         try {
-            pst = conn.prepareStatement("SELECT * FROM members WHERE reg_no = ?");
+            pst = conn.prepareStatement("SELECT * FROM members WHERE regno = ?");
             pst.setString(1, regNo);
             ResultSet rs = pst.executeQuery();
             if (rs.next()) {
                 JOptionPane.showMessageDialog(null, "Member with the same registration number already exists.");
             } else {
-                pst = conn.prepareStatement("INSERT INTO members(reg_no, name, gender, mem_type, email) VALUES (?,?,?,?,?)");
+                pst = conn.prepareStatement("INSERT INTO members(regno, name, gender, mem_type, email) VALUES (?,?,?,?,?)");
                 pst.setString(1, regNo);
                 pst.setString(2, name);
                 pst.setString(3, gen);
@@ -250,7 +250,7 @@ public class member {
 
     public void searchMember(){
         try {
-            pst = conn.prepareStatement("SELECT * FROM members WHERE reg_no=?");
+            pst = conn.prepareStatement("SELECT * FROM members WHERE regno=?");
             pst.setString(1, Search);
             ResultSet rs = pst.executeQuery();
             DefaultTableModel model = new DefaultTableModel();
@@ -277,7 +277,7 @@ public class member {
 
     public boolean deleteMember() {
         try {
-            pst = conn.prepareStatement("DELETE FROM members WHERE reg_no=?");
+            pst = conn.prepareStatement("DELETE FROM members WHERE regno=?");
             pst.setString(1, Search);
 
             // execute the delete statement
@@ -296,7 +296,7 @@ public class member {
     public boolean updateMember(){
         try {
             // prepare statement for updating books table
-            pst = conn.prepareStatement("UPDATE members SET name=?, gender=?, mem_type=?, email=? WHERE reg_no=?");
+            pst = conn.prepareStatement("UPDATE members SET name=?, gender=?, mem_type=?, email=? WHERE regno=?");
             pst.setString(5, regNo);
             pst.setString(1, name);
             pst.setString(2, gen);
