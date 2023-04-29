@@ -1,5 +1,7 @@
 package com.interfaces;
 
+import utilities.fine_managemnt;
+
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
@@ -58,18 +60,54 @@ public class BorrowManagement {
                 B_date = Date.valueOf(LocalDate.now());
                 R_date = null;
 
-                if (ISBN.isEmpty()||reg_id.isEmpty()){
+                if (ISBN.isEmpty() || reg_id.isEmpty()) {
                     JOptionPane.showMessageDialog(null, "Select the all Required Field!");
-                }
-                else {
+                } else {
                     addBorrow(ISBN, reg_id, B_date);
 
                 }
             }
         });
+        recivedButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Date currentDate = Date.valueOf(LocalDate.now());
+                try {
+                    String isbn = txtISBN.getText();
+                    String regNo = txtMemID.getText();
+                    pst = conn.prepareStatement("SELECT b_date FROM borrows WHERE isbn = ? AND reg_no = ?");
+                    pst.setString(1, isbn);
+                    pst.setString(2, regNo);
+                    ResultSet rs = pst.executeQuery();
+
+                    if (rs.next()) {
+                        Date borrowDate = rs.getDate("b_date");
+                        fine_managemnt fineMgmt = new fine_managemnt();
+                        double fine = fineMgmt.calFine(Date.valueOf(borrowDate.toLocalDate()), currentDate);
+
+                        // Update the borrows table with the return date
+                        pst = conn.prepareStatement("UPDATE borrows SET r_date = ? WHERE isbn = ? AND reg_no = ?");
+                        pst.setDate(1, currentDate);
+                        pst.setString(2, isbn);
+                        pst.setString(3, regNo);
+                        pst.executeUpdate();
+
+                        if (fine > 0) {
+                            JOptionPane.showMessageDialog(null, "Fine amount: $" + fine);
+                        } else {
+                            JOptionPane.showMessageDialog(null, "No fine.");
+                        }
+                    } else {
+                        JOptionPane.showMessageDialog(null, "No borrow record found.");
+                    }
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        });
     }
 
-    public void render(){
+        public void render(){
         JFrame frame = new JFrame("Borrow Management");
         Jpanel.setPreferredSize(new Dimension(1024, 728)); // Set the preferred size of the LoginFram panel
         frame.setContentPane(Jpanel);
@@ -122,7 +160,7 @@ public class BorrowManagement {
             int numColumns = rsmd.getColumnCount();
 
             // add column names to model
-            String[] columnNames = {"ISBN", "Reg_No", "Borrow_Date"};
+            String[] columnNames = {"ISBN", "Reg_No", "Borrow Date", "Receive Date"};
             for (String columnName : columnNames) {
                 model.addColumn(columnName);
             }
