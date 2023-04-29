@@ -1,6 +1,7 @@
 package com.interfaces;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -13,6 +14,8 @@ public class BorrowManagement {
     private JTextField txtMemID;
     private JButton submitButton;
     private JButton backButton;
+    private JButton recivedButton;
+    private JTable table1;
     private JButton btnBack;
 
     Connection conn;
@@ -28,6 +31,9 @@ public class BorrowManagement {
             Class.forName("com.mysql.cj.jdbc.Driver");
             conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/library_management", "root", "root");
             System.out.println("Database Connection Success in BM");
+
+            tableLoad();
+
         } catch (SQLException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
@@ -56,7 +62,7 @@ public class BorrowManagement {
                     JOptionPane.showMessageDialog(null, "Select the all Required Field!");
                 }
                 else {
-                    //Rest of the code
+                    addBorrow(ISBN, reg_id, B_date);
 
                 }
             }
@@ -74,18 +80,67 @@ public class BorrowManagement {
         frame.setVisible(true);
     }
 
-    public void addBorrow(){
+    public void addBorrow(String isbn, String regNo, Date borrowDate) {
         try {
-            pst = conn.prepareStatement("SELECT id FROM books WHERE ISBN=?");
-            pst.setString(1, ISBN);
-            ResultSet rs = pst.executeQuery();
+            pst = conn.prepareStatement("SELECT * FROM books WHERE ISBN=?");
+            pst.setString(1, isbn);
+            ResultSet rsBooks = pst.executeQuery();
 
-            if (rs.next()) {
-                JOptionPane.showMessageDialog(null, "There is no book in the system!");
+            pst = conn.prepareStatement("SELECT * FROM members WHERE regno=?");
+            pst.setString(1, regNo);
+            ResultSet rsMembers = pst.executeQuery();
+
+            if (!rsBooks.next()) {
+                JOptionPane.showMessageDialog(null, "There is no book with the given ISBN in the system!");
+            }
+            else if (!rsMembers.next()) {
+                JOptionPane.showMessageDialog(null, "There is no member with the given registration number in the system!");
+            }
+            else {
+                pst = conn.prepareStatement("INSERT INTO borrows (isbn, reg_no, b_date) VALUES (?, ?, ?)");
+                pst.setString(1, isbn);
+                pst.setString(2, regNo);
+                pst.setDate(3, borrowDate);
+                pst.executeUpdate();
+
+                JOptionPane.showMessageDialog(null, "Borrow details added to the system.");
             }
         }
         catch (SQLException e){
             e.printStackTrace();
         }
     }
+
+
+
+    public void tableLoad() {
+        try {
+            pst = conn.prepareStatement("SELECT * FROM borrows");
+            ResultSet rs = pst.executeQuery();
+            DefaultTableModel model = new DefaultTableModel();
+            ResultSetMetaData rsmd = rs.getMetaData();
+            int numColumns = rsmd.getColumnCount();
+
+            // add column names to model
+            String[] columnNames = {"ISBN", "Reg_No", "Borrow_Date"};
+            for (String columnName : columnNames) {
+                model.addColumn(columnName);
+            }
+
+            // add data to model
+            while (rs.next()) {
+                Object[] rowData = new Object[numColumns];
+                for (int i = 1; i <= numColumns; i++) {
+                    rowData[i-1] = rs.getObject(i);
+                }
+                model.addRow(rowData);
+            }
+            table1.setModel(model);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+
 }
