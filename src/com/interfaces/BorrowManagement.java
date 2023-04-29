@@ -18,6 +18,9 @@ public class BorrowManagement {
     private JButton backButton;
     private JButton recivedButton;
     private JTable table1;
+    private JTextField textField1;
+    private JButton searchButton;
+    private JButton refreshButton;
     private JButton btnBack;
 
     Connection conn;
@@ -25,6 +28,7 @@ public class BorrowManagement {
 
     private String reg_id, ISBN;
     private Date B_date, R_date;
+    private  String search;
 
     public BorrowManagement() {
 
@@ -64,7 +68,7 @@ public class BorrowManagement {
                     JOptionPane.showMessageDialog(null, "Select the all Required Field!");
                 } else {
                     addBorrow(ISBN, reg_id, B_date);
-
+                    tableLoad();
                 }
             }
         });
@@ -103,6 +107,24 @@ public class BorrowManagement {
                 } catch (SQLException ex) {
                     ex.printStackTrace();
                 }
+            }
+        });
+        searchButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                search = textField1.getText();
+                if (search.isEmpty()) {
+                    JOptionPane.showMessageDialog(null, "Please Enter Registration Number to Search!");
+                }
+                else {
+                    searchMember();
+                }
+            }
+        });
+        refreshButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                tableLoad();
             }
         });
     }
@@ -179,6 +201,32 @@ public class BorrowManagement {
         }
     }
 
+    public void searchMember(){
+        try {
+            pst = conn.prepareStatement("SELECT * FROM borrows WHERE reg_no=?");
+            pst.setString(1, search);
+            ResultSet rs = pst.executeQuery();
+            DefaultTableModel model = new DefaultTableModel();
+            ResultSetMetaData rsmd = rs.getMetaData();
+            int numColumns = rsmd.getColumnCount();
+            // add column names to model
+            for (int i = 1; i <= numColumns; i++) {
+                model.addColumn(rsmd.getColumnName(i));
+            }
+            // add data to model
+            while (rs.next()) {
+                Object[] rowData = new Object[numColumns];
+                for (int i = 1; i <= numColumns; i++) {
+                    rowData[i-1] = rs.getObject(i);
+                }
+                model.addRow(rowData);
+            }
+            table1.setModel(model);
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 
 
 }
